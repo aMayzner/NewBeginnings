@@ -27,4 +27,62 @@
       </li>
     </stages>
   </ThoughtDef>
+  <!-- Mood thoughts for relationship pain -->
+  <ThoughtDef>
+    <defName>NewBeginnings_FriendLeftMood</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>15</durationDays>
+    <stackLimit>5</stackLimit>
+    <stackedEffectMultiplier>0.5</stackedEffectMultiplier>
+    <stages>
+      <li>
+        <label>a friend left the colony</label>
+        <description>Someone I was close to left to start a new life. I wish them well, but it stings.</description>
+        <baseMoodEffect>-3</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <ThoughtDef>
+    <defName>NewBeginnings_LoverLeftMood</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>30</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>my lover left the colony</label>
+        <description>The person I love chose to leave. I feel hollow inside.</description>
+        <baseMoodEffect>-10</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <!-- Social opinion thoughts for relationship pain -->
+  <ThoughtDef>
+    <defName>NewBeginnings_FriendLeft</defName>
+    <thoughtClass>Thought_MemorySocial</thoughtClass>
+    <durationDays>30</durationDays>
+    <stackLimit>5</stackLimit>
+    <stages>
+      <li>
+        <label>friend left the colony</label>
+        <description>They left to start a new life. I'm happy for them, but I'll miss them.</description>
+        <baseOpinionOffset>-15</baseOpinionOffset>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <ThoughtDef>
+    <defName>NewBeginnings_LoverLeft</defName>
+    <thoughtClass>Thought_MemorySocial</thoughtClass>
+    <durationDays>60</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>lover left the colony</label>
+        <description>The person I love left to start a new life without me. My heart aches.</description>
+        <baseOpinionOffset>-30</baseOpinionOffset>
+      </li>
+    </stages>
+  </ThoughtDef>
 </Defs>

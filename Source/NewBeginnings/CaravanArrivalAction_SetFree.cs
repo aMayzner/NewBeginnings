@@ -14,6 +14,7 @@ namespace NewBeginnings
         private const float MinTimeInColonyTicks = 2f * 60f * 60000f;
         // 1 year cooldown tracked via game component
         private const int CooldownTicks = 60 * 60000;
+
         public override string Label => "Set colonists free";
 
         public override string ReportString => "Sending colonists to start a new life at " + settlement.Label;
@@ -70,6 +71,58 @@ namespace NewBeginnings
                 return;
 
             List<string> colonistNames = colonists.Select(p => p.Name.ToStringShort).ToList();
+            NewBeginningsCooldown tracker = Current.Game.GetComponent<NewBeginningsCooldown>();
+
+            // Relationship pain — remaining colonists who had close bonds
+            ThoughtDef friendLeft = DefDatabase<ThoughtDef>.GetNamedSilentFail("NewBeginnings_FriendLeft");
+            ThoughtDef friendLeftMood = DefDatabase<ThoughtDef>.GetNamedSilentFail("NewBeginnings_FriendLeftMood");
+            ThoughtDef loverLeft = DefDatabase<ThoughtDef>.GetNamedSilentFail("NewBeginnings_LoverLeft");
+            ThoughtDef loverLeftMood = DefDatabase<ThoughtDef>.GetNamedSilentFail("NewBeginnings_LoverLeftMood");
+            if (friendLeft != null || loverLeft != null)
+            {
+                foreach (Pawn leaving in colonists)
+                {
+                    // Check direct relations (lover, spouse, fiance, family)
+                    foreach (DirectPawnRelation rel in leaving.relations.DirectRelations)
+                    {
+                        Pawn other = rel.otherPawn;
+                        if (other == null || other.Dead || colonists.Contains(other))
+                            continue;
+                        if (!other.IsColonist || !other.RaceProps.Humanlike)
+                            continue;
+
+                        if (rel.def == PawnRelationDefOf.Lover
+                            || rel.def == PawnRelationDefOf.Fiance
+                            || rel.def == PawnRelationDefOf.Spouse)
+                        {
+                            if (loverLeft != null)
+                                other.needs?.mood?.thoughts?.memories?.TryGainMemory(loverLeft, leaving);
+                            if (loverLeftMood != null)
+                                other.needs?.mood?.thoughts?.memories?.TryGainMemory(loverLeftMood);
+                        }
+                    }
+
+                    // Check opinion-based friendships (opinion > 40 = close friend)
+                    if (friendLeft != null)
+                    {
+                        foreach (Map map in Find.Maps)
+                        {
+                            foreach (Pawn other in map.mapPawns.FreeColonists)
+                            {
+                                if (other == leaving || colonists.Contains(other))
+                                    continue;
+                                if (leaving.relations.OpinionOf(other) > 40)
+                                {
+                                    if (friendLeft != null)
+                                        other.needs?.mood?.thoughts?.memories?.TryGainMemory(friendLeft, leaving);
+                                    if (friendLeftMood != null)
+                                        other.needs?.mood?.thoughts?.memories?.TryGainMemory(friendLeftMood);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // Permanent bond between colonists starting a new life together
             if (colonists.Count > 1)
@@ -91,6 +144,10 @@ namespace NewBeginnings
                     }
                 }
             }
+
+            // Record sent colonists for return visits and faction memory
+            foreach (Pawn colonist in colonists)
+                tracker?.RecordSentColonist(colonist, targetFaction);
 
             // Transfer colonists to the target faction as world pawns
             foreach (Pawn colonist in colonists)
@@ -142,15 +199,30 @@ namespace NewBeginnings
             }
 
             // Set cooldown
-            NewBeginningsCooldown cooldown = Current.Game.GetComponent<NewBeginningsCooldown>();
-            if (cooldown != null)
-                cooldown.lastUsedTick = Find.TickManager.TicksGame;
+            if (tracker != null)
+                tracker.lastUsedTick = Find.TickManager.TicksGame;
 
-            // Send letter
+            // Build letter with faction memory
             string names = string.Join(", ", colonistNames);
             string letterText = names + " arrived at " + settlement.Label + " and "
                 + (colonists.Count == 1 ? "has" : "have") + " been welcomed by " + targetFaction.Name + "."
                 + " They will start a new life there.";
+
+            // Faction memory — mention previous colonists sent to this faction
+            if (tracker != null)
+            {
+                List<string> previous = tracker.GetPreviouslySentTo(targetFaction);
+                // Exclude the ones we just sent
+                List<string> previousOnly = previous
+                    .Where(n => !colonistNames.Contains(n))
+                    .ToList();
+                if (previousOnly.Count > 0)
+                {
+                    letterText += "\n\nThey join " + string.Join(", ", previousOnly)
+                        + " who " + (previousOnly.Count == 1 ? "was" : "were")
+                        + " sent to " + targetFaction.Name + " before them.";
+                }
+            }
 
             if (giftWealth > 0f)
                 letterText += "\n\nThe gifts you sent were worth " + giftWealth.ToStringMoney()
@@ -169,13 +241,10 @@ namespace NewBeginnings
 
         public static bool IsEligible(Pawn pawn)
         {
-            // Must be adult
             if (!pawn.ageTracker.Adult)
                 return false;
-            // Must be free colonist (not prisoner, not slave)
             if (pawn.IsPrisoner || pawn.IsSlave)
                 return false;
-            // Must have been in colony for 2+ years
             float timeInColony = pawn.records.GetValue(RecordDefOf.TimeAsColonistOrColonyAnimal);
             if (timeInColony < MinTimeInColonyTicks)
                 return false;
@@ -200,10 +269,8 @@ namespace NewBeginnings
                 return false;
             if (IsOnCooldown())
                 return false;
-            // Need at least one eligible colonist
             if (!caravan.PawnsListForReading.Any(p => p.IsColonist && p.RaceProps.Humanlike && IsEligible(p)))
                 return false;
-            // Must have at least 2 colonists remaining in all colonies after sending
             int totalColonists = 0;
             foreach (Map map in Find.Maps)
                 totalColonists += map.mapPawns.FreeColonistsCount;
