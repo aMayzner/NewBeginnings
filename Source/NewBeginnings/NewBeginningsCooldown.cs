@@ -125,7 +125,15 @@ namespace NewBeginnings
                 if (sentToFactions == null) sentToFactions = new List<Faction>();
                 if (sentAtTicks == null) sentAtTicks = new List<int>();
                 if (factionHistory == null) factionHistory = new Dictionary<string, List<string>>();
-                sentColonists.RemoveAll(p => p == null);
+                for (int i = sentColonists.Count - 1; i >= 0; i--)
+                {
+                    if (sentColonists[i] == null)
+                    {
+                        sentColonists.RemoveAt(i);
+                        if (i < sentToFactions.Count) sentToFactions.RemoveAt(i);
+                        if (i < sentAtTicks.Count) sentAtTicks.RemoveAt(i);
+                    }
+                }
             }
         }
     }
