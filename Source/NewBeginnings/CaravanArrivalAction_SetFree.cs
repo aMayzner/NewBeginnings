@@ -71,6 +71,27 @@ namespace NewBeginnings
 
             List<string> colonistNames = colonists.Select(p => p.Name.ToStringShort).ToList();
 
+            // Permanent bond between colonists starting a new life together
+            if (colonists.Count > 1)
+            {
+                ThoughtDef newLifeTogether = DefDatabase<ThoughtDef>.GetNamedSilentFail("NewBeginnings_NewLifeTogether");
+                if (newLifeTogether != null)
+                {
+                    for (int a = 0; a < colonists.Count; a++)
+                    {
+                        for (int b = 0; b < colonists.Count; b++)
+                        {
+                            if (a != b)
+                            {
+                                Thought_MemorySocial thought = (Thought_MemorySocial)ThoughtMaker.MakeThought(newLifeTogether);
+                                thought.permanent = true;
+                                colonists[a].needs?.mood?.thoughts?.memories?.TryGainMemory(thought, colonists[b]);
+                            }
+                        }
+                    }
+                }
+            }
+
             // Transfer colonists to the target faction as world pawns
             foreach (Pawn colonist in colonists)
             {

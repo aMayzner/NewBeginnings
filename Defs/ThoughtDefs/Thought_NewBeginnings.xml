@@ -14,4 +14,17 @@
       </li>
     </stages>
   </ThoughtDef>
+  <ThoughtDef>
+    <defName>NewBeginnings_NewLifeTogether</defName>
+    <thoughtClass>Thought_MemorySocial</thoughtClass>
+    <durationDays>3600</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>started a new life together</label>
+        <description>We left everything behind and started over together. That bonds people.</description>
+        <baseOpinionOffset>10</baseOpinionOffset>
+      </li>
+    </stages>
+  </ThoughtDef>
 </Defs>
