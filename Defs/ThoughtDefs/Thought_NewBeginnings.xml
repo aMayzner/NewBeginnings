@@ -14,18 +14,4 @@
       </li>
     </stages>
   </ThoughtDef>
-
-  <ThoughtDef>
-    <defName>NewBeginnings_SentAwayHappy</defName>
-    <thoughtClass>Thought_Memory</thoughtClass>
-    <durationDays>10</durationDays>
-    <stackLimit>1</stackLimit>
-    <stages>
-      <li>
-        <label>sent away a happy colonist</label>
-        <description>We sent away someone who was happy here. Were we right to do that?</description>
-        <baseMoodEffect>-4</baseMoodEffect>
-      </li>
-    </stages>
-  </ThoughtDef>
 </Defs>

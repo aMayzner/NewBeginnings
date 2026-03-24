@@ -14,9 +14,6 @@ namespace NewBeginnings
         private const float MinTimeInColonyTicks = 2f * 60f * 60000f;
         // 1 year cooldown tracked via game component
         private const int CooldownTicks = 60 * 60000;
-        // Mood threshold — above this, colonist was happy and colony gets a penalty
-        private const float HappyMoodThreshold = 0.65f;
-
         public override string Label => "Set colonists free";
 
         public override string ReportString => "Sending colonists to start a new life at " + settlement.Label;
@@ -74,10 +71,6 @@ namespace NewBeginnings
 
             List<string> colonistNames = colonists.Select(p => p.Name.ToStringShort).ToList();
 
-            // Check if any sent colonist was happy (mood penalty for colony)
-            bool anyHappy = colonists.Any(p =>
-                p.needs?.mood != null && p.needs.mood.CurLevel > HappyMoodThreshold);
-
             // Transfer colonists to the target faction as world pawns
             foreach (Pawn colonist in colonists)
             {
@@ -116,21 +109,14 @@ namespace NewBeginnings
                     canSendMessage: false, canSendHostilityLetter: false);
             }
 
-            // Colony mood: positive for giving fresh start
+            // Colony mood boost
             ThoughtDef freshStart = DefDatabase<ThoughtDef>.GetNamedSilentFail("NewBeginnings_GaveFreshStart");
-            // Colony mood: negative if someone happy was sent away
-            ThoughtDef sentAwayHappy = anyHappy
-                ? DefDatabase<ThoughtDef>.GetNamedSilentFail("NewBeginnings_SentAwayHappy")
-                : null;
-
-            foreach (Map map in Find.Maps)
+            if (freshStart != null)
             {
-                foreach (Pawn col in map.mapPawns.FreeColonists)
+                foreach (Map map in Find.Maps)
                 {
-                    if (freshStart != null)
+                    foreach (Pawn col in map.mapPawns.FreeColonists)
                         col.needs?.mood?.thoughts?.memories?.TryGainMemory(freshStart);
-                    if (sentAwayHappy != null)
-                        col.needs?.mood?.thoughts?.memories?.TryGainMemory(sentAwayHappy);
                 }
             }
 
@@ -148,9 +134,6 @@ namespace NewBeginnings
             if (giftWealth > 0f)
                 letterText += "\n\nThe gifts you sent were worth " + giftWealth.ToStringMoney()
                     + ", earning you goodwill with " + targetFaction.Name + ".";
-
-            if (anyHappy)
-                letterText += "\n\nSome of the colonists you sent away were happy here. Your people are uneasy about this decision.";
 
             Find.LetterStack.ReceiveLetter(
                 "New Beginnings",
