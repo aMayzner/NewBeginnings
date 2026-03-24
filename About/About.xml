@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>New Beginnings</name>
+  <author>Anna</author>
+  <url>https://github.com/aMayzner/NewBeginnings</url>
+  <supportedVersions>
+    <li>1.5</li>
+    <li>1.6</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>ludeon.rimworld</packageId>
+      <displayName>RimWorld</displayName>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>ludeon.rimworld</li>
+  </loadAfter>
+  <packageId>anna.newbeginnings</packageId>
+  <description>Set your colonists free. Send them to a friendly faction to start a new life.
+
+Pick colonists, items, and animals to send. Form a special caravan that travels to a friendly settlement. When they arrive, the colonists join that faction as world pawns — they can marry, have children, and show up in future events.
+
+75% of the wealth you send counts as a gift, boosting faction relations. Your colony gets a mood boost for giving someone a fresh start.</description>
+</ModMetaData>
